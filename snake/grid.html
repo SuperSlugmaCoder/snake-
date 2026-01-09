@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>16x16 snake</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+
+
+        #restartBtn {
+            margin-top: 20px;
+            padding: 10px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #restartBtn:hover {
+            background-color: #45a049;
+        }
+
+        #gameover {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: bold;
+            color: red;
+            background-color: white;
+            padding: 20px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            background-color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(16, 50px);
+            grid-template-rows: repeat(16, 50px);
+
+            padding: 20px;
+
+
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            color: white;
+            font-weight: bold;
+        }
+
+        div .snake {
+            background-color: rgb(81, 62, 253);
+
+        }
+
+        .grey {
+            background-color: #5dec3a;
+        }
+
+        .white {
+            background-color: #1a460f;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="score">Score: 0</div>
+    <div id="gameover" style="display: none;">
+        GAME OVER<br>
+        Score: 0<br>
+        <button id="restartBtn">Restart Game</button>
+    </div>
+
+
+
+
+
+
+    <div id="grid" class="grid-container"></div>
+
+    <script>
+        const grid = document.getElementById('grid');
+        const rows = 16;
+        const cols = 16;
+
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const cell = document.createElement('div');
+                cell.className = `cell row-${row} col-${col}`;
+
+
+
+
+                if ((row + col) % 2 === 0) {
+                    cell.classList.add('grey');
+                } else {
+                    cell.classList.add('white');
+                }
+
+                grid.appendChild(cell);
+
+
+            }
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === "o") {
+                foodeaten += 1000;
+            }
+            // Code here runs when ANY key is pressed
+            console.log("Key pressed:", event.key);
+        });
+        const cells = document.querySelectorAll('.cell');
+
+        let foodeaten = 0
+
+        let tickspeed = 400
+
+        let interval = null;
+
+        interval = setInterval(tick, tickspeed);
+
+
+        let nextdirection = "right"
+
+        let snake = [{ row: 8, col: 8 }, { row: 8, col: 7 }, { row: 8, col: 6 }];
+        let direction = "right";
+        let food = { row: 5, col: 5 };
+        let gameOver = false;
+        let score = 0;
+
+        function draw() {
+            cells.forEach(cell => {
+                cell.classList.remove('snake');
+                cell.style.backgroundColor = '';
+            });
+
+            snake.forEach((segment, index) => {
+                const cell = document.querySelector(`.row-${segment.row}.col-${segment.col}`);
+                if (cell) {
+                    //console.log("Drawing snake segment at:", segment);
+
+                    cell.classList.add('snake');
+                    //cell.classList.remove('grey', 'white');
+
+                }
+            });
+
+            const foodCell = document.querySelector(`.row-${food.row}.col-${food.col}`);
+            if (foodCell) {
+                foodCell.style.backgroundColor = 'red';
+            }
+        }
+
+        draw();
+
+        document.getElementById('restartBtn').addEventListener('click', function () {
+            snake = [{ row: 8, col: 8 }, { row: 8, col: 7 }, { row: 8, col: 6 }];
+            direction = "right";
+            nextdirection = "right";
+            food = { row: 5, col: 5 };
+            gameOver = false;
+            foodeaten = 0;
+            tickspeed = 400;
+            document.getElementById('score').textContent = 'Score: ' + foodeaten;
+            console.log("Hiding game over screen");
+            document.getElementById('gameover').style.display = 'none';
+
+
+
+
+            clearInterval(interval);
+            interval = setInterval(tick, tickspeed);
+
+            draw();
+
+
+        });
+
+
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'ArrowUp' && direction !== "down")
+                nextdirection = 'up'
+
+            else if (event.key === 'ArrowDown' && direction !== "up")
+                nextdirection = 'down'
+
+            else if (event.key === 'ArrowLeft' && direction !== "right")
+                nextdirection = 'left'
+
+            else if (event.key === 'ArrowRight' && direction !== "left")
+                nextdirection = 'right'
+        })
+
+
+        function tick() {
+            if (gameOver === true) {
+                return;
+            }
+
+            direction = nextdirection;
+
+
+            let head = snake[0];
+            let newHead = { row: head.row, col: head.col };
+
+            if (direction === 'up') newHead.row--;
+            else if (direction === 'down') newHead.row++;
+            else if (direction === 'left') newHead.col--;
+            else if (direction === 'right') newHead.col++;
+
+            if (newHead.row < 0 || newHead.row >= 16 ||
+                newHead.col < 0 || newHead.col >= 16) {
+                gameOver = true;
+                document.getElementById('gameover').style.display = 'block';
+
+                document.querySelectorAll('#gameover')[0].childNodes[2].textContent = 'Score: ' + foodeaten;
+                return;          // <- stop before unshift/draw
+            }
+
+            if (snake.some(segment => segment.row === newHead.row && segment.col === newHead.col)) {
+                gameOver = true;
+                document.getElementById('gameover').style.display = 'block';
+
+                document.querySelectorAll('#gameover')[0].childNodes[2].textContent = 'Score: ' + foodeaten;
+                return;          // <- stop before unshift/draw
+            }
+
+            snake.unshift(newHead);
+
+            if (newHead.row === food.row && newHead.col === food.col) {
+                do {
+
+                    food = {
+                        row: Math.floor(Math.random() * 16),
+                        col: Math.floor(Math.random() * 16)
+
+
+                    };
+                } while (snake.some(segment => segment.row === food.row && segment.col === food.col));
+
+                foodeaten++;
+                document.getElementById('score').textContent = 'score: ' + foodeaten;
+
+
+            } else {
+                snake.pop();  // Remove tail
+            }
+
+            tickspeed = Math.max(20, 280 - foodeaten * 5);
+            console.log("tickspeed has increased to", tickspeed);
+            clearInterval(interval); // Increase speed
+            interval = setInterval(tick, tickspeed);
+
+            draw();
+
+
+
+        }
+
+
+
+
+
+
+    </script>
+</body>
+
+</html>
